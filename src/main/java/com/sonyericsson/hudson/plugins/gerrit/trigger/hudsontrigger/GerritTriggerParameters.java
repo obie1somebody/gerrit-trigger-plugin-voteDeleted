@@ -43,6 +43,8 @@ import com.sonymobile.tools.gerrit.gerritevents.dto.events.GerritTriggeredEvent;
 import com.sonymobile.tools.gerrit.gerritevents.dto.events.HashtagsChanged;
 import com.sonymobile.tools.gerrit.gerritevents.dto.events.RefUpdated;
 import com.sonymobile.tools.gerrit.gerritevents.dto.events.TopicChanged;
+import com.sonymobile.tools.gerrit.gerritevents.dto.events.VoteDeleted;
+
 import hudson.model.Job;
 import hudson.model.ParameterValue;
 import hudson.model.StringParameterValue;
@@ -614,6 +616,13 @@ public enum GerritTriggerParameters {
                 }
                 GERRIT_EVENT_UPDATED_APPROVALS.setOrCreateStringParameterValue(parameters,
                         getUpdatedApprovals((CommentAdded)event), false);
+            }
+        if (event instanceof VoteDeleted) {
+                String comment = ((VoteDeleted)event).getComment();
+                if (comment != null) {
+                    commentTextMode.setOrCreateParameterValue(GERRIT_EVENT_COMMENT_TEXT,
+                            parameters, comment, ParameterMode.PlainMode.TEXT, escapeQuotes);
+                }
             }
         if (event instanceof HashtagsChanged) {
             String addedHashtags = ((HashtagsChanged)event).getAddedHashtags().stream()
