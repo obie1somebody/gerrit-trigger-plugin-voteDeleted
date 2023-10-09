@@ -45,6 +45,7 @@ import com.sonyericsson.hudson.plugins.gerrit.trigger.hudsontrigger.events.Plugi
 import com.sonyericsson.hudson.plugins.gerrit.trigger.hudsontrigger.events.PluginGerritEvent;
 import com.sonyericsson.hudson.plugins.gerrit.trigger.hudsontrigger.events.PluginPatchsetCreatedEvent;
 import com.sonyericsson.hudson.plugins.gerrit.trigger.hudsontrigger.events.PluginChangeAbandonedEvent;
+import com.sonyericsson.hudson.plugins.gerrit.trigger.hudsontrigger.events.PluginVoteDeletedEvent;
 import com.sonyericsson.hudson.plugins.gerrit.trigger.version.GerritVersionChecker;
 import com.sonymobile.tools.gerrit.gerritevents.GerritHandler;
 import com.sonymobile.tools.gerrit.gerritevents.GerritQueryHandler;
@@ -59,6 +60,7 @@ import com.sonymobile.tools.gerrit.gerritevents.dto.events.ChangeAbandoned;
 import com.sonymobile.tools.gerrit.gerritevents.dto.events.GerritTriggeredEvent;
 import com.sonymobile.tools.gerrit.gerritevents.dto.events.RefUpdated;
 import com.sonymobile.tools.gerrit.gerritevents.dto.events.TopicChanged;
+import com.sonymobile.tools.gerrit.gerritevents.dto.events.VoteDeleted;
 import com.sonymobile.tools.gerrit.gerritevents.dto.rest.Topic;
 
 import hudson.model.Action;
@@ -1247,6 +1249,23 @@ public class GerritTrigger extends Trigger<Job> {
             }
             if (e instanceof PluginCommentAddedContainsEvent) {
                 if (((PluginCommentAddedContainsEvent)e).match(event)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Checks if Vote Deleted Trigger's configured RegEx matches the vote-deleted event.
+     *
+     * @param event the event.
+     * @return true if the event matches the configured RegEx.
+     */
+    protected boolean voteDeletedMatch(VoteDeleted event) {
+        for (PluginGerritEvent e : triggerOnEvents) {
+            if (e instanceof PluginVoteDeletedEvent) {
+                if (((PluginVoteDeletedEvent)e).match(event)) {
                     return true;
                 }
             }

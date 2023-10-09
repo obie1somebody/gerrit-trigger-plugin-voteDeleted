@@ -40,6 +40,8 @@ import com.sonymobile.tools.gerrit.gerritevents.dto.events.CommentAdded;
 import com.sonymobile.tools.gerrit.gerritevents.dto.events.GerritTriggeredEvent;
 import com.sonymobile.tools.gerrit.gerritevents.dto.events.RefUpdated;
 import com.sonymobile.tools.gerrit.gerritevents.dto.events.TopicChanged;
+import com.sonymobile.tools.gerrit.gerritevents.dto.events.VoteDeleted;
+
 import hudson.model.Job;
 import hudson.model.ParameterValue;
 import hudson.model.StringParameterValue;
@@ -486,6 +488,12 @@ public enum GerritTriggerParameters {
                     parameters, getEmail(uploader), escapeQuotes);
             if (event instanceof CommentAdded) {
                 String comment = ((CommentAdded)event).getComment();
+                if (comment != null) {
+                    commentTextMode.setOrCreateParameterValue(GERRIT_EVENT_COMMENT_TEXT,
+                            parameters, comment, ParameterMode.PlainMode.TEXT, escapeQuotes);
+                }
+            }else if (event instanceof VoteDeleted) {
+                String comment = ((VoteDeleted)event).getComment();
                 if (comment != null) {
                     commentTextMode.setOrCreateParameterValue(GERRIT_EVENT_COMMENT_TEXT,
                             parameters, comment, ParameterMode.PlainMode.TEXT, escapeQuotes);

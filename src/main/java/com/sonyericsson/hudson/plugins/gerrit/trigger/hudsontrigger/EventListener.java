@@ -35,6 +35,7 @@ import com.sonymobile.tools.gerrit.gerritevents.dto.events.ChangeBasedEvent;
 import com.sonymobile.tools.gerrit.gerritevents.dto.events.CommentAdded;
 import com.sonymobile.tools.gerrit.gerritevents.dto.events.GerritTriggeredEvent;
 import com.sonymobile.tools.gerrit.gerritevents.dto.events.RefUpdated;
+import com.sonymobile.tools.gerrit.gerritevents.dto.events.VoteDeleted;
 import hudson.model.CauseAction;
 import hudson.model.Job;
 import hudson.model.ParameterDefinition;
@@ -213,6 +214,46 @@ public final class EventListener implements GerritEventListener {
                 logger.trace("Just aborting build based on event not scheduling new one.");
                 return;
             }
+            notifyOnTriggered(t, event);
+            schedule(t, new GerritCause(event, t.isSilentMode()), event);
+        }
+        
+    }
+
+    /**
+     * Called when a VoteDeleted event arrives.
+     *
+     * @param event the event.
+     */
+    public void gerritEvent(VoteDeleted event) {
+        logger.trace("job: {}; event: {}", job, event);
+        GerritTrigger t = getTrigger();
+        if (t == null) {
+            logger.warn("Couldn't find a configured trigger for {}", job);
+            return;
+        }
+        ToGerritRunListener listener = ToGerritRunListener.getInstance();
+        if (listener != null) {
+            if (listener.isBuilding(t.getJob(), event)) {
+                logger.trace("Already building.");
+                return;
+            }
+        }
+        // Wait for the project list to be ready before we try to process the event.
+        try {
+            t.waitForProjectListToBeReady();
+        } catch (InterruptedException e) {
+            // This thread has been interrupted.
+            //
+            // This is only possible if the configuration had not been loaded yet
+            // and we were waiting for it.
+            //
+            // We are going to assume we've been asked to cancel, so we're going
+            // to just return now without processing the event.
+            return;
+        }
+        if (t.isInteresting(event) && t.voteDeletedMatch(event)) {
+            logger.trace("The event is interesting.");
             notifyOnTriggered(t, event);
             schedule(t, new GerritCause(event, t.isSilentMode()), event);
         }
